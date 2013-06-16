@@ -3,7 +3,16 @@ var prototype = require('prototype'),
 	_ = require('underscore');
 require('sylvester');
 
-var gameData = {};
+var gameDataObj = {
+	m:{
+		pred: 0,
+		prey: 0
+	},
+	p: {}
+};
+
+gameData = gameDataObj.p
+
 var io;
 
 var players = [];
@@ -37,7 +46,7 @@ var notify = function(msg, id){
 	if(!io.sockets.sockets[id]){
 		delete gameData[id];
 		players = players.filter(function(el){
-			eturn el.id !== id;
+			return el.id !== id;
 		})
 		return;
 	}
@@ -105,13 +114,26 @@ var removePlayerObj = function(el){
 //return game data at end of loop
 exports.loop = function(){
 
+	var pred = 0,
+		prey = 0;
+
 	for(var i=0; i<players.length; i++){
 		players[i].tick();
+		if(players[i].type === 'Predator'){
+			pred++;
+		}else if(players[i].type === 'Prey'){
+			prey++;
+		}
 	}
 
 	filterRemoved();
 
-	return gameData;
+	gameDataObj.pred = pred;
+	gameDataObj.prey = prey;
+
+	gameDataObj.p = gameData;
+
+	return gameDataObj;
 }
 
 var filterRemoved = function(){
@@ -238,10 +260,7 @@ var Prey = prototype.Class.create(Player, {
 			if(dist < playerRad + algaeRad){
 				console.log('eat algae');
 				
-				delete gameData[curr.id];
-				players = players.filter(function(el){
-					return el.id !== curr.id;
-				})
+				curr.remove = true;
 
 				this.health = 1;
 				this.timeToReproduce = 1;

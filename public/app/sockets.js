@@ -21,7 +21,9 @@ socket.on('alert', function(data){
 });
 
 socket.on('update', function(data){
-	gameData = data;
+	gameData = data.p;
+	predatorEl.innerHTML = data.pred;
+	preyEl.innerHTML = data.prey;
 	pjs.joinData();
 })
 
