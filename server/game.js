@@ -118,10 +118,17 @@ exports.loop = function(){
 		prey = 0;
 
 	for(var i=0; i<players.length; i++){
-		players[i].tick();
-		if(players[i].type === 'Predator'){
+		var curr = players[i];
+		if(curr.type !== 'Algae' && !io.sockets.sockets[curr.id]){
+			delete gameData[curr.id];
+			players.splice(i,1);
+			i--;
+			continue;
+		}
+		curr.tick();
+		if(curr.type === 'Predator'){
 			pred++;
-		}else if(players[i].type === 'Prey'){
+		}else if(curr.type === 'Prey'){
 			prey++;
 		}
 	}
