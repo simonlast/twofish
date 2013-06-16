@@ -34,6 +34,14 @@ var addAlgae = function(){
 }
 
 var notify = function(msg, id){
+	if(!io.sockets.sockets[id]){
+		delete gameData[id];
+		players = players.filter(function(el){
+			eturn el.id !== id;
+		})
+		return;
+	}
+
 	io.sockets.sockets[id].emit('alert', msg);
 }
 
