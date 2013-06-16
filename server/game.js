@@ -17,7 +17,7 @@ var io;
 
 var players = [];
 
-var playerSpeed = 1.2;
+var playerSpeed = 2;
 var decay = .0005;
 var repDecay = .005;
 var playerRad = 30;
