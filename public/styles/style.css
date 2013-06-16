@@ -1,0 +1,42 @@
+.noselect {
+  -moz-user-select: -moz-none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+}
+body {
+  background-color: #fafafa;
+  font-family: 'source code pro', monospace;
+  overflow: hidden;
+  color: #646464;
+  margin: 0;
+}
+#pcanvas {
+  padding: 0px;
+  margin: 0px auto;
+}
+.stats {
+  font-family: Helvetica;
+  padding: 10px;
+  font-weight: lighter;
+  font-size: 60px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  text-align: right;
+  background-color: none;
+  opacity: .9;
+  color: #3c3c3c;
+  -webkit-transition: all 0.2s ease-in-out;
+  -moz-transition: all 0.2s ease-in-out;
+  -o-transition: all 0.2s ease-in-out;
+  -ms-transition: all 0.2s ease-in-out;
+  -moz-user-select: -moz-none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+}
+.predator {
+  color: #87bdb1;
+}
+.prey {
+  color: #ff9c5b;
+}
