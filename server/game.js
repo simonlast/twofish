@@ -1,6 +1,8 @@
 
 var prototype = require('prototype'),
-	_ = require('underscore');
+	_ = require('underscore'),
+	utils = require('./utils');
+
 require('sylvester');
 
 var gameDataObj = {
@@ -17,69 +19,80 @@ var io;
 
 var players = [];
 
-var playerSpeed = 2;
-var decay = .0005;
-var repDecay = .005;
 var playerRad = 30;
 var algaeRad = 20;
-var algaeCount = 0;
-var AIcount = 0;
 
+var params = {
+	bboxX: 1500,
+	bboxY: 1500,
+	maxPlayers: 100,
+	algaeRespawn: 5,
+	preySpeed: 2,
+	predatorSpeed: 1.5,
+	decay: .0005,
+	repDecay: .005
+};
 
 exports.ready = function(sio){
 
 	io = sio;
 
-	for(var i=0; i<3; i++){
+	for(var i=0; i<10; i++){
 		addAlgae();
 	}
+
+	for(var i=0; i<20; i++){
+		addAI('Predator');
+		addAI('Prey');
+	}
+
+	setInterval(function(){
+		addAlgae();
+	},1000*params.algaeRespawn);
+
+}
+
+var getRandomPos = function(){
+	return $V([
+		Math.random()*params.bboxX-params.bboxX/2,
+		Math.random()*params.bboxY-params.bboxY/2,
+	]);
+}
+
+var getRandomVector = function(mag){
+	return $V([Math.random(), Math.random]).toUnitVector().multiply(mag);
 }
 
 var addAlgae = function(){
-	var al = new Algae(Math.random()*400-200, Math.random()*400-200, 'Algae' + algaeCount);
-	gameData['Algae' + algaeCount] = al.getObj();
-	players.push(al);
-	algaeCount++;
+	var id = utils.uniqueRandomString(20, gameData);
+	var pos = getRandomPos();
+	var al = new Algae(pos.elements[0], pos.elements[1], id);
 }
 
-var notify = function(msg, id){
-	if(!io.sockets.sockets[id]){
-		delete gameData[id];
-		players = players.filter(function(el){
-			return el.id !== id;
-		})
+var addAI = function(type){
+	var id = utils.uniqueRandomString(20, gameData);
+	var pos = getRandomPos();
+	var newAI = new constructors[type](pos.elements[0], pos.elements[1], id);
+	newAI.isAI = true;
+	console.log(newAI.type);
+}
+
+var notify = function(msg, player){
+	if(!player.isPlayer()){
 		return;
 	}
 
-	io.sockets.sockets[id].emit('alert', msg);
-}
-
-var notifyRespawn = function(secs, id){
-	var count = (secs)*1000;
-	notify('You died.<br />Respawn in ' + (Math.floor(count/1000)) + ' seconds', id);
-	var intv = setInterval(function(){
-		count -= 1000;
-
-		notify('You died.<br />Respawn in ' + (Math.floor(count/1000)) + ' seconds', id);
-		if(count <= 0){
-			clearInterval(intv);
-			notify('', id);
-			exports.addPlayer(id);
-		}
-	},1000);
+	io.sockets.sockets[player.id].emit('alert', msg);
 };
 
 exports.addPlayer = function(id){
 	var newPlayer;
+	var pos = getRandomPos();
 	if(Math.random()<.5){
-		newPlayer = new Predator(0,0, id);
+		newPlayer = new Predator(pos.elements[0], pos.elements[1], id);
 	}else{
-		newPlayer = new Prey(0,0,id);
+		newPlayer = new Prey(pos.elements[0], pos.elements[1],id);
 	}
-
-	gameData[id] = newPlayer.getObj();
-
-	players.push(newPlayer);
 
 	console.log('addPlayer', gameData);
 }
@@ -119,12 +132,6 @@ exports.loop = function(){
 
 	for(var i=0; i<players.length; i++){
 		var curr = players[i];
-		if(curr.type !== 'Algae' && !io.sockets.sockets[curr.id]){
-			delete gameData[curr.id];
-			players.splice(i,1);
-			i--;
-			continue;
-		}
 		curr.tick();
 		if(curr.type === 'Predator'){
 			pred++;
@@ -156,7 +163,7 @@ var filterRemoved = function(){
 
 var Player = prototype.Class.create({
 	initialize: function(x, y, id){
-		this.pos = $V([Math.random()*400-200, Math.random()*400-200]);
+		this.pos = $V([x, y]);
 		this.v = $V([0, 0]);
 		this.a = $V([0, 0]);
 		this.id = id;
@@ -168,6 +175,74 @@ var Player = prototype.Class.create({
 		this.rot = 0;
 		this.tailRot = 0;
 		this.lastAngle = 0;
+
+		if(players.length <= params.maxPlayers){
+			//add self to structs
+			gameData[this.id] = this.getObj();
+			players.push(this);
+		}
+		
+	},
+
+	reproduce: function(){
+		var child = new constructors[this.type](this.pos.elements[0],
+			this.pos.elements[1], utils.uniqueRandomString(20, gameData));
+		this.timeToReproduce = 0;
+		child.isAI = true;
+		console.log('sex!');
+	},
+
+	getNearestPlayers: function(){
+		var nearest = {
+			predator: null,
+			prey: null,
+			algae: null
+		};
+
+		var nearestDist = {
+			predator: 1e9,
+			prey: 1e9,
+			algae: 1e9
+		}
+
+		for(var i=0; i<players.length; i++){
+			var curr = players[i];
+			if(curr != this){
+				var dist = this.pos.distanceFrom(curr.pos);
+				if(curr.type === 'Predator'){
+					if(dist < nearestDist.predator){
+						nearestDist.predator = dist;
+						nearest.predator = curr;
+					}
+				}else if(curr.type == 'Prey'){
+					if(dist < nearestDist.prey){
+						nearestDist.prey = dist;
+						nearest.prey = curr;
+					}
+				}else if(curr.type == 'Algae'){
+					if(dist < nearestDist.algae){
+						nearestDist.algae = dist;
+						nearest.algae = curr;
+					}
+				}
+				
+				
+			}
+		}
+
+		return {nearest: nearest, dist: nearestDist};
+	},
+
+	isPlayer: function(){
+		if(this.isAI){
+			return false;
+		}
+
+		if(!io.sockets.sockets[this.id]){
+			return false;
+		}
+
+		return true;
 	},
 
 	getObj: function(){
@@ -183,7 +258,7 @@ var Player = prototype.Class.create({
 	moveTo: function(x, y){
 		var vec = $V([x, y]);
 		var diff = vec.subtract(this.pos);
-		this.v = diff.toUnitVector().multiply(playerSpeed);
+		this.v = diff.toUnitVector().multiply(this.speed);
 	},
 
 	updateGameData: function(){
@@ -194,19 +269,42 @@ var Player = prototype.Class.create({
 		datum.rep = this.timeToReproduce;
 	},
 
+	addRandomVelocity: function(){
+		var div = 4;
+		this.v = this.v.add($V([
+			Math.random()*this.speed/div - this.speed/div/2,
+			Math.random()*this.speed/div - this.speed/div/2
+		]))
+	},
+
 	tick: function(){
 
 		this.pos = this.pos.add(this.v);
 
+		if(this.pos.elements[0] - playerRad < -1*params.bboxX/2){
+			this.pos.elements[0] = -1*params.bboxX/2 + playerRad;
+		}
+
+		if(this.pos.elements[0] + playerRad > params.bboxX/2){
+			this.pos.elements[0] = params.bboxX/2 - playerRad;
+		}
+
+		if(this.pos.elements[1] - playerRad < -1*params.bboxY/2){
+			this.pos.elements[1] = -1*params.bboxY/2 + playerRad;
+		}
+
+		if(this.pos.elements[1] + playerRad > params.bboxY/2){
+			this.pos.elements[1] = params.bboxY/2 - playerRad;
+		}
+
 		if(this.health >= 0){
-			this.health -= decay;
+			this.health -= params.decay;
 		}else{
 			this.remove = true;
-			notifyRespawn(10, this.id);
 		}
 		
 		if(this.timeToReproduce >= 0){
-			this.timeToReproduce -= repDecay;
+			this.timeToReproduce -= params.repDecay;
 		}
 		
 
@@ -217,35 +315,51 @@ var Player = prototype.Class.create({
 var Predator = prototype.Class.create(Player, {
 
 	initialize: function($super, x, y, id){
-		$super(x, y, id);
 		this.type = 'Predator';
+		this.speed = params.predatorSpeed;
+
+		$super(x, y, id);
 	},
 
-	eat: function(other){
-		other.remove = true;
-		notifyRespawn(10, other.id);
-		this.health = 1;
-		this.timeToReproduce = 1;
-	},
-	
-	tryEat: function(){
-		for(var i=0; i<players.length; i++){
-			var curr = players[i];
-			if(curr != this){
-				var dist = this.pos.distanceFrom(curr.pos);
-				if(dist < playerRad*2 && curr.type === 'Prey'){
-					console.log('eat');
-					this.eat(curr);
-					break;
-				}
+	act: function(){
+		var obj = this.getNearestPlayers();
+
+		if(obj.nearest.predator && (this.timeToReproduce > 0 || obj.nearest.predator.timeToReproduce > 0)){
+
+			if(this.isAI){
+				this.v = obj.nearest.predator.pos.subtract(this.pos)
+					.toUnitVector().multiply(this.speed);
+				this.addRandomVelocity();
+			}
+			if(obj.dist.predator < playerRad*2 && this.timeToReproduce > 0){
+				this.reproduce();
+			}
+		}
+		else if(obj.nearest.prey){
+			if(this.isAI){
+				this.v = obj.nearest.prey.pos.subtract(this.pos)
+					.toUnitVector().multiply(this.speed);
+				this.addRandomVelocity();
+			}
+			if(obj.dist.prey < playerRad*2){
+				console.log('eat!');
+				this.eat(obj.nearest.prey);
+			}
+		}else{
+			if(this.isAI){
+				this.v = $V([0,0]);
 			}
 		}
 	},
 
-	tick: function($super){
+	eat: function(other){
+		other.remove = true;
+		this.health = 1;
+		this.timeToReproduce = 1;
+	},
 
-		this.tryEat();
-		
+	tick: function($super){
+		this.act();
 		$super();
 	}
 });
@@ -253,37 +367,57 @@ var Predator = prototype.Class.create(Player, {
 var Prey = prototype.Class.create(Player, {
 
 	initialize: function($super, x, y, id){
-		$super(x, y, id);
 		this.type = 'Prey';
+		this.speed = params.preySpeed;
+
+		$super(x, y, id);
 	},
-	
-	tryEat: function(){
-		for(var i=0; i<players.length; i++){
-			var curr = players[i];
-			if(curr.type !== 'Algae'){
-				continue;
+
+	act: function(){
+		var obj = this.getNearestPlayers();
+
+		if(obj.nearest.prey && (this.timeToReproduce > 0 || obj.nearest.prey.timeToReproduce > 0)){
+
+			if(this.isAI){
+				this.v = obj.nearest.prey.pos.subtract(this.pos)
+					.toUnitVector().multiply(this.speed);
+				this.addRandomVelocity();
 			}
-			var dist = this.pos.distanceFrom(curr.pos);
-			if(dist < playerRad + algaeRad){
-				console.log('eat algae');
-				
-				curr.remove = true;
-
-				this.health = 1;
-				this.timeToReproduce = 1;
-
-				setTimeout(function(){
-					addAlgae();
-				},1000*10);
-				
-				break;
+			if(obj.dist.prey < playerRad*2 && this.timeToReproduce > 0){
+				this.reproduce();
+			}
+		}
+		else if(obj.nearest.predator && obj.dist.predator < obj.dist.algae){
+			if(this.isAI){
+				this.v = this.pos.subtract(obj.nearest.predator.pos)
+					.toUnitVector().multiply(this.speed);
+				this.addRandomVelocity();
+			}
+		}else if(obj.nearest.algae){
+			if(this.isAI){
+				this.v = obj.nearest.algae.pos.subtract(this.pos)
+					.toUnitVector().multiply(this.speed);
+				this.addRandomVelocity();
+			}
+			if(obj.dist.algae < playerRad + algaeRad){
+				this.eat(obj.nearest.algae);
+			}
+		}else{
+			if(this.isAI){
+				this.v = $V([0,0]);
 			}
 		}
 	},
 
+	eat: function(algae){
+		algae.remove = true;
+		this.health = 1;
+		this.timeToReproduce = 1;
+	},
+
 	tick: function($super){
 
-		this.tryEat();
+		this.act();
 		
 		$super();
 	}
@@ -292,13 +426,13 @@ var Prey = prototype.Class.create(Player, {
 var Algae = prototype.Class.create(Player, {
 
 	initialize: function($super, x, y, id){
-		$super(x, y, id);
 		this.type = 'Algae';
+		$super(x, y, id);
 	},
 	
 
 	tick: function($super){
-
+		this.updateGameData();
 	}
 });
 
@@ -306,6 +440,4 @@ var constructors = {
 	'Predator': Predator,
 	'Prey': Prey
 };
-
-
 

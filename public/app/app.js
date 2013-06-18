@@ -25,11 +25,11 @@ var play = function(pjs) {
 
 	pjs.setupScreen = function(){
 		pjs.size(pjs.screenWidth,pjs.screenHeight);
-		translate = new pjs.PVector(pjs.width/2, pjs.height/2);
 	};
 
 	pjs.setup = function(){
 		pjs.setupScreen();
+		translate = new pjs.PVector(pjs.width/2, pjs.height/2);
 		pjs.noStroke();
 		pjs.smooth();
 		pjs.textAlign(pjs.LEFT);
@@ -53,6 +53,8 @@ var play = function(pjs) {
 	pjs.draw = function(){
 		pjs.background(bkg);
 
+		adjustTranslation();
+
 		pjs.pushMatrix();
 		pjs.translate(translate.x, translate.y);
 		
@@ -68,6 +70,26 @@ var play = function(pjs) {
 
 		if(player){
 			displayHealth();
+		}
+	};
+
+	var adjustTranslation = function(){
+
+		if(!player)
+			return;
+
+		var screenPos = new pjs.PVector(player.pos.x + translate.x,
+			player.pos.y + translate.y);
+		if(screenPos.x < pjs.width*1/3){
+			translate.x = pjs.width*1/3 - player.pos.x;
+		}else if(screenPos.x > pjs.width*2/3){
+			translate.x = pjs.width*2/3 - player.pos.x;
+		}
+
+		if(screenPos.y < pjs.height*1/3){
+			translate.y = pjs.height*1/3 - player.pos.y;
+		}else if(screenPos.y > pjs.height*2/3){
+			translate.y = pjs.height*2/3 - player.pos.y;
 		}
 	};
 
@@ -94,7 +116,6 @@ var play = function(pjs) {
 				var obj = gameData[id];
 				var newPlayer = new constructors[obj.type](obj.x, obj.y, id);
 				players.push(newPlayer);
-
 				
 				if(id == playerId){
 					player = newPlayer;
@@ -109,8 +130,9 @@ var play = function(pjs) {
 			});
 			if(id){
 				return true;
+			}else{
+				return false;
 			}
-			return false;
 		});
 
 	}
@@ -138,6 +160,10 @@ var play = function(pjs) {
 			this.rot = 0;
 			this.tailRot = 0;
 			this.lastAngle = 0;
+
+			this.tweens = {
+				rad: 0
+			};
 		},
 
 		update: function(){
@@ -148,13 +174,20 @@ var play = function(pjs) {
 			this.timeToReproduce = obj.rep;
 		},
 
+		tween: function(){
+			this.tweens.rad += (this.rad - this.tweens.rad)*.2;
+		},
+
 		render: function(){
+			if(player && (Math.abs(this.pos.x - player.pos.x) > pjs.width + 100
+				|| Math.abs(this.pos.y - player.pos.y) > pjs.height)){
+				return;
+			}
+
 			var lastPos = new pjs.PVector(this.pos.x, this.pos.y);
 			this.update();
-			
-			/*var tweenPos = new pjs.PVector((gameData[this.id].x - this.pos.x)*.9,
-				(gameData[this.id].y - this.pos.y)*.9);*/
-			
+
+			this.tween();
 
 			var diff = pjs.PVector.sub(this.pos, lastPos);
 			var angle = Math.atan(diff.y / diff.x);
@@ -185,25 +218,25 @@ var play = function(pjs) {
 			if(this == player){
 				pjs.fill(gray);
 				var add = 15 + this.timeToReproduce*40;
-				pjs.ellipse(0, 0, playerRad*2 + add, playerRad*2 + add);
+				pjs.ellipse(0, 0, this.tweens.rad*2 + add, this.tweens.rad*2 + add);
 			}
 			pjs.fill(this.col);
 
-			pjs.triangle(0 - playerRad, 0, 
-				0 - playerFinSize.x - playerRad, 0 - playerFinSize.y,
-				0 + playerFinSize.x - playerRad, 0 - playerFinSize.y);
+			pjs.triangle(0 - this.tweens.rad, 0, 
+				0 - playerFinSize.x - this.tweens.rad, 0 - playerFinSize.y,
+				0 + playerFinSize.x - this.tweens.rad, 0 - playerFinSize.y);
 
-			pjs.triangle(0 + playerRad, 0, 
-				0 - playerFinSize.x + playerRad, 0 -playerFinSize.y,
-				0 + playerFinSize.x + playerRad, 0 - playerFinSize.y);
+			pjs.triangle(0 + this.tweens.rad, 0, 
+				0 - playerFinSize.x + this.tweens.rad, 0 - playerFinSize.y,
+				0 + playerFinSize.x + this.tweens.rad, 0 - playerFinSize.y);
 
 			pjs.rotate(this.tailRot - this.rot);
 
-			pjs.triangle(0, 0 - playerRad + playerFinSize.y, 
-				0 - playerFinSize.x*3/2, 0 - playerRad - playerFinSize.y/2,
-				0 + playerFinSize.x*3/2, 0 - playerRad - playerFinSize.y/2);
+			pjs.triangle(0, 0 - this.tweens.rad + playerFinSize.y, 
+				0 - playerFinSize.x*3/2, 0 - this.tweens.rad - playerFinSize.y/2,
+				0 + playerFinSize.x*3/2, 0 - this.tweens.rad - playerFinSize.y/2);
 
-			pjs.ellipse(0, 0, playerRad*2, playerRad*2);
+			pjs.ellipse(0, 0, this.tweens.rad*2, this.tweens.rad*2);
 
 			pjs.popMatrix();
 		}
@@ -211,31 +244,35 @@ var play = function(pjs) {
 
 	var Predator = Class.create(Player, {
 		initialize: function($super, x, y, id){
-			$super(x, y, id);
 			this.type = 'Predator';
 			this.col = predatorCol;
+			this.rad = playerRad;
+			$super(x, y, id);
 		}
 	});
 
 
 	var Prey = Class.create(Player, {
 		initialize: function($super, x, y, id){
-			$super(x, y, id);
+			this.rad = playerRad;
 			this.type = 'Prey';
 			this.col = preyCol;
+			$super(x, y, id);
 		}
 	});
 
 	var Algae = Class.create(Player, {
 		initialize: function($super, x, y, id){
-			$super(x, y, id);
 			this.type = 'Algae';
 			this.col = algaeCol;
+			this.rad = algaeRad;
+			$super(x, y, id);
 		},
 
 		render: function(){
 			pjs.fill(this.col);
-			pjs.ellipse(this.pos.x, this.pos.y, algaeRad*2, algaeRad*2);
+			this.tween();
+			pjs.ellipse(this.pos.x, this.pos.y, this.tweens.rad*2, this.tweens.rad*2);
 		}
 	});
 

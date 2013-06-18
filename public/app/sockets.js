@@ -32,3 +32,7 @@ socket.on('id', function(id){
  	pjs.setPlayerId(id);
 });
 
+window.onbeforeunload = function (e) {
+ 	socket.disconnect();
+};
+
