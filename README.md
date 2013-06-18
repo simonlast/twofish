@@ -11,7 +11,7 @@ Throughout the game, a moderator will be able to change its parameters in real t
 allowing the players to observe the effects and transforming the game into a tool for
 scientific inquiry.
 
-this was as a hackathon project for AngelHack SV 2013 ...so there are most definitely bugs
+this was as a hackathon project for AngelHack SV 2013 with [Eric Xiao](https://github.com/exiao), [Tony Hung](https://github.com/hungyukao), Jess Lee, and [Me](https://github.com/simonlast)
 
 to run:
 
