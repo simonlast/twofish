@@ -1,9 +1,8 @@
+#two fish
 
-#fish
+###two fish is a game for learning about complex dynamic systems.
 
-###fish is a game for learning about complex dynamic systems.
-
-![fish](https://raw.github.com/simonlast/fish/master/screenshot.png)
+![two fish](https://raw.github.com/simonlast/fish/master/screenshot.png)
 
 In the game, each player takes the role of a member of a species, and tries to survive,
 competing in real time with other players, as well as AIs.
