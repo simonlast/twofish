@@ -30,19 +30,25 @@ var params = {
 	preySpeed: 2,
 	predatorSpeed: 1.5,
 	decay: .0005,
-	repDecay: .005
+	repDecay: .005,
+	startPredators: 3,
+	startPrey: 3,
+	startAlgae: 20,
 };
 
 exports.ready = function(sio){
 
 	io = sio;
 
-	for(var i=0; i<10; i++){
+	for(var i=0; i<params.startAlgae; i++){
 		addAlgae();
 	}
 
-	for(var i=0; i<20; i++){
+	for(var i=0; i<params.startPredators; i++){
 		addAI('Predator');
+	}
+
+	for(var i=0; i<params.startPrey; i++){
 		addAI('Prey');
 	}
 
@@ -50,7 +56,13 @@ exports.ready = function(sio){
 		addAlgae();
 	},1000*params.algaeRespawn);
 
+	console.log('server started');
+
 }
+
+setInterval(function(){
+	console.log('#fish: ' + players.length);
+}, 2000);
 
 var getRandomPos = function(){
 	return $V([
@@ -74,7 +86,6 @@ var addAI = function(type){
 	var pos = getRandomPos();
 	var newAI = new constructors[type](pos.elements[0], pos.elements[1], id);
 	newAI.isAI = true;
-	console.log(newAI.type);
 }
 
 var notify = function(msg, player){
@@ -93,16 +104,13 @@ exports.addPlayer = function(id){
 	}else{
 		newPlayer = new Prey(pos.elements[0], pos.elements[1],id);
 	}
-
-	console.log('addPlayer', gameData);
 }
 
 exports.removePlayer = function(id){
 	delete gameData[id];
 	players = players.filter(function(el){
 		return el.id !== id;
-	})
-	console.log('removePlayer', gameData);
+	});
 }
 
 exports.action = function(id, action){
@@ -189,7 +197,6 @@ var Player = prototype.Class.create({
 			this.pos.elements[1], utils.uniqueRandomString(20, gameData));
 		this.timeToReproduce = 0;
 		child.isAI = true;
-		console.log('sex!');
 	},
 
 	getNearestPlayers: function(){
@@ -342,7 +349,6 @@ var Predator = prototype.Class.create(Player, {
 				this.addRandomVelocity();
 			}
 			if(obj.dist.prey < playerRad*2){
-				console.log('eat!');
 				this.eat(obj.nearest.prey);
 			}
 		}else{
