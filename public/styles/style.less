@@ -34,9 +34,10 @@
     -ms-transition: all @time ease-in-out;
 }
 
-body{
+#canvas-body{
 	background-color:@bkg;
-	font-family:'source code pro',monospace;
+	font-family: Helvetica;
+	font-weight: lighter;
 	overflow: hidden;
 	color:rgb(100,100,100);
 	margin: 0;
@@ -70,6 +71,73 @@ body{
 .prey{
 	color: rgb(255,156,91);
 }
+
+.select-bar-bkg{
+	position: absolute;
+	top:0;
+	left:0;
+	width: 100%;
+	margin:0;
+	height: 100px;
+	background-color: rgb(200,200,200);
+}
+
+.select-bar-ratio{
+	position: absolute;
+	top:0;
+	left:0;
+	width: 50%;
+	height: 100%;
+	margin:0;
+	background-color: @terminaltext;
+}
+
+.select-bar-hit{
+	width: 90%;
+	margin: 5%;
+	height: 100px;
+	position: relative;
+}
+
+.param-label{
+	position: absolute;
+	left:0;
+	top:0;
+
+	font-family: Helvetica;
+	padding: 10px;
+	font-weight: lighter;
+	font-size:60px;
+	color: @bkg;
+	.noselect;
+}
+
+.num-label{
+	position: absolute;
+	top:0;
+
+	font-family: Helvetica;
+	padding: 10px;
+	font-weight: lighter;
+	font-size:60px;
+	color: @bkg;
+	.noselect;
+	max-width: 30%;
+	right:0;
+	text-align: right;
+	text-overflow: clip;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 

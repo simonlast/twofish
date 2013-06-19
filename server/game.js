@@ -36,6 +36,14 @@ var params = {
 	startAlgae: 20,
 };
 
+exports.getParams = function(){
+	return params;
+}
+
+exports.setParams = function(pr){
+	params = pr;
+}
+
 exports.ready = function(sio){
 
 	io = sio;
@@ -359,6 +367,9 @@ var Predator = prototype.Class.create(Player, {
 	},
 
 	eat: function(other){
+		if(other.remove)
+			return;
+
 		other.remove = true;
 		this.health = 1;
 		this.timeToReproduce = 1;
@@ -416,6 +427,9 @@ var Prey = prototype.Class.create(Player, {
 	},
 
 	eat: function(algae){
+		if(algae.remove)
+			return;
+
 		algae.remove = true;
 		this.health = 1;
 		this.timeToReproduce = 1;

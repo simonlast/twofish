@@ -36,3 +36,5 @@ window.onbeforeunload = function (e) {
  	socket.disconnect();
 };
 
+socket.emit('join', '');
+
