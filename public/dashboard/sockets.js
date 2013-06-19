@@ -7,7 +7,6 @@ var allData = {};
 Comm.getParams = function(){
 	socket.emit('getparams', '', function(params){
 		Comm.params = params;
-		Dash.create();
 	})
 }
 

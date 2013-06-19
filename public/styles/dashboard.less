@@ -1,6 +1,10 @@
 @bkg: rgb(250,250,250);
-@terminalbkg: rgb(220,220,220);
-@terminaltext: rgb(60,60,60);
+@div-col: rgb(230,230,230);
+@pred-col: rgb(135,189,177);
+@prey-col: rgb(255,156,91);
+@text-col: rgb(100,100,100);
+
+@pred-col-darker: darken(@pred-col, 20%);
 
 .rounded-corners (@radius: 8px) {
   border-radius: @radius;
@@ -34,51 +38,60 @@
     -ms-transition: all @time ease-in-out;
 }
 
-#canvas-body{
+
+
+body{
 	background-color:@bkg;
 	font-family: Helvetica;
 	font-weight: lighter;
-	overflow: hidden;
-	color:rgb(100,100,100);
+	color: @text-col;
 	margin: 0;
 }
 
-#pcanvas{
-	padding: 0px;
-	margin: 0px auto;
-}
-
-.stats{
+span{
 	font-family: Helvetica;
-	padding: 10px;
 	font-weight: lighter;
-	font-size:60px;
 	position: absolute;
 	top:0;
 	right:0;
-	text-align: right;
-	background-color: none;
-	opacity: .9;
-	color: @terminaltext;
-	.ease;
+	padding: 15px;
+	font-size: 50px;
 	.noselect;
 }
 
-.predator{
-	color: rgb(135,189,177);
+#container{
+	margin: 0px auto;
+	width: 100%;
+	padding: 30px;
+	.ease;
 }
 
-.prey{
-	color: rgb(255,156,91);
+
+.item{
+	width: 600px;
+	height: 400px;
+	background-color: @div-col;
+
 }
 
+.content{
+	margin:5px;
+	margin-top:80px;
+}
 
+.buttons{
+	padding: 30px;
+}
 
+i{
+	padding: 30px;
+	font-size: 100px;
+	.ease(.2s);
+}
 
-
-
-
-
+i:active{
+	color: darken(@text-col, 20%);
+}
 
 
 
