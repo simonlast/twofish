@@ -15,7 +15,7 @@ span {
   font-weight: lighter;
   position: absolute;
   top: 0;
-  right: 0;
+  left: 0;
   padding: 15px;
   font-size: 50px;
   -moz-user-select: -moz-none;
@@ -23,33 +23,48 @@ span {
   -webkit-user-select: none;
 }
 #container {
-  margin: 0px auto;
+  float: left;
+  margin: 0;
+  padding: 0;
   width: 100%;
-  padding: 30px;
-  -webkit-transition: all 0.2s ease-in-out;
-  -moz-transition: all 0.2s ease-in-out;
-  -o-transition: all 0.2s ease-in-out;
-  -ms-transition: all 0.2s ease-in-out;
+  -webkit-transition: all 0.1s ease-in-out;
+  -moz-transition: all 0.1s ease-in-out;
+  -o-transition: all 0.1s ease-in-out;
+  -ms-transition: all 0.1s ease-in-out;
 }
 .item {
-  width: 600px;
+  position: relative;
+  width: 90%;
   height: 400px;
+  margin: 5%;
   background-color: #e6e6e6;
 }
 .content {
   margin: 5px;
   margin-top: 80px;
 }
-.buttons {
-  padding: 30px;
+.controls {
+  position: fixed;
+  top: 0;
+  right: 0;
+  padding: 20px;
+  background-color: #e6e6e6;
+  opacity: .5;
+  -webkit-transition: all 0.1s ease-in-out;
+  -moz-transition: all 0.1s ease-in-out;
+  -o-transition: all 0.1s ease-in-out;
+  -ms-transition: all 0.1s ease-in-out;
+}
+.controls:hover {
+  opacity: 1;
 }
 i {
-  padding: 30px;
-  font-size: 100px;
-  -webkit-transition: all 0.2s ease-in-out;
-  -moz-transition: all 0.2s ease-in-out;
-  -o-transition: all 0.2s ease-in-out;
-  -ms-transition: all 0.2s ease-in-out;
+  padding: 20px;
+  font-size: 75px;
+  -webkit-transition: all 0.1s ease-in-out;
+  -moz-transition: all 0.1s ease-in-out;
+  -o-transition: all 0.1s ease-in-out;
+  -ms-transition: all 0.1s ease-in-out;
 }
 i:active {
   color: #313131;

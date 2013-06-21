@@ -31,9 +31,9 @@ var params = {
 	predatorSpeed: 1.5,
 	decay: .0005,
 	repDecay: .005,
-	startPredators: 3,
-	startPrey: 3,
-	startAlgae: 20,
+	startPredators: 10,
+	startPrey: 10,
+	startAlgae: 10,
 };
 
 exports.getParams = function(){

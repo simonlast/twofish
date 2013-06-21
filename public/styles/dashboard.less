@@ -31,7 +31,7 @@
 	-ms-transform:rotate(@deg);
 }
 
-.ease (@time: .2s) {
+.ease (@time: .1s) {
 	-webkit-transition: all @time ease-in-out;
     -moz-transition: all @time ease-in-out;
     -o-transition: all @time ease-in-out;
@@ -53,23 +53,27 @@ span{
 	font-weight: lighter;
 	position: absolute;
 	top:0;
-	right:0;
+	left:0;
 	padding: 15px;
 	font-size: 50px;
 	.noselect;
 }
 
 #container{
-	margin: 0px auto;
+	float:left;
+
+	margin: 0;
+	padding: 0;
 	width: 100%;
-	padding: 30px;
 	.ease;
 }
 
 
 .item{
-	width: 600px;
+	position:relative;
+	width: 90%;
 	height: 400px;
+	margin: 5%;
 	background-color: @div-col;
 
 }
@@ -79,14 +83,24 @@ span{
 	margin-top:80px;
 }
 
-.buttons{
-	padding: 30px;
+.controls{
+	position: fixed;
+	top: 0;
+	right: 0;
+	padding: 20px;
+	background-color: @div-col;
+	opacity: .5;
+	.ease;
+}
+
+.controls:hover{
+	opacity: 1;
 }
 
 i{
-	padding: 30px;
-	font-size: 100px;
-	.ease(.2s);
+	padding: 20px;
+	font-size: 75px;
+	.ease;
 }
 
 i:active{
