@@ -26,14 +26,14 @@ var params = {
 	bboxX: 1500,
 	bboxY: 1500,
 	maxPlayers: 100,
-	algaeRespawn: 5,
+	algaeRespawn: 2,
 	preySpeed: 2,
 	predatorSpeed: 1.5,
 	decay: .0005,
 	repDecay: .005,
 	startPredators: 10,
-	startPrey: 10,
-	startAlgae: 10,
+	startPrey: 20,
+	startAlgae: 20,
 };
 
 exports.getParams = function(){

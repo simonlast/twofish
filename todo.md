@@ -8,6 +8,4 @@
 
 * minimap for players to see global state (?)
 
-*
-
 * performance...
